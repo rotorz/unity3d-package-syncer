@@ -25,13 +25,13 @@ such that you have something similar to the following:
 ```json
 {
   "name": "unity-project",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "scripts": {
     "sync": "unity3d--sync"
   },
   "dependencies": {
-    "unity3d-package-syncer": "../unity3d-package-syncer"
+    "unity3d-package-syncer": "^1.0.1"
   }
 }
 ```
