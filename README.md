@@ -64,6 +64,8 @@ The following is an example of how the `package.json` of such a package might lo
 }
 ```
 
+For an example checkout the [unity3d-package-example](https://github.com/rotorz/unity3d-package-example) repository.
+
 
 ## Which files are copied from the npm package?
 
