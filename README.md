@@ -54,7 +54,7 @@ npm run sync
 
 For example, if you were to install a new package:
 ```bash
-npm install --save some-new-unity3d-package
+npm install --save unity3d-package-example
 npm run sync
 ```
 
