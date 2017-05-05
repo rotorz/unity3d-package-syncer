@@ -43,6 +43,21 @@ This command must be executed where the CWD (current working directory) is the r
 directory of the Unity project. That is, the directory that contains "Assets/", "Library/"
 and "package.json".
 
+When the 'sync' script is properly configured in your `package.json` file you can use
+the following command to synchronize the `node_modules/` packages with the ones in the
+`Assets/Plugins/Packages/` directory of your project. You should execute this after
+installing, uninstalling or updating packages:
+
+```bash
+npm run sync
+```
+
+For example, if you were to install a new package:
+```bash
+npm install --save some-new-unity3d-package
+npm run sync
+```
+
 
 ## Creating Unity packages for npm
 
