@@ -6,6 +6,7 @@
 "use strict"
 
 const colors = require('colors/safe');
+const extfs = require('extfs');
 const fs = require("fs-extra");
 const path = require("path");
 
@@ -93,8 +94,8 @@ console.log("");
 
 // Phase 2 - Remove redundant packages from the project's packages directory.
 
-const projectPackageDirectoryListing = getDirectories(projectPackagesDir);
-const projectRedundantPackageNames = projectPackageDirectoryListing.filter(packageName => !projectDependencyNames.has(packageName));
+const projectPackageListing = getProjectPackageListing();
+const projectRedundantPackageNames = projectPackageListing.filter(packageName => !projectDependencyNames.has(packageName));
 
 for (let redundantPackageName of projectRedundantPackageNames) {
   const redundantPackageDir = path.resolve(projectPackagesDir, redundantPackageName);
@@ -115,12 +116,48 @@ for (let redundantPackageName of projectRedundantPackageNames) {
 console.log("");
 
 
+// Phase 3 - Remove empty scope directories from project's packages directory.
+
+for (let projectPackageScope of getProjectPackageScopes()) {
+  const projectPackageScopeDir = path.resolve(projectPackagesDir, projectPackageScope);
+  const projectPackageScopeMeta = path.resolve(projectPackagesDir, projectPackageScope + ".meta");
+  validateProjectPackageDirectory(projectPackageScopeDir);
+
+  if (extfs.isEmptySync(projectPackageScopeDir)) {
+    fs.removeSync(projectPackageScopeDir);
+
+    if (fs.existsSync(projectPackageScopeMeta)) {
+      fs.unlinkSync(projectPackageScopeMeta);
+    }
+  }
+}
+
+
 // Helper functions:
 
 function validateProjectPackageDirectory(packageDir) {
   if (!packageDir.includes(PROJECT_RELATIVE_PACKAGES_PATH)) {
     throw new Error("Project package has an unexpected path: " + packageDir);
   }
+}
+
+function getProjectPackageListing() {
+  return flatMap(getDirectories(projectPackagesDir), packageDirectory =>
+    packageDirectory.startsWith("@")
+      ? getDirectories(path.join(projectPackagesDir, packageDirectory))
+          .map(scopedPackageName => packageDirectory + "/" + scopedPackageName)
+      : packageDirectory
+  );
+}
+
+function getProjectPackageScopes() {
+  return getDirectories(projectPackagesDir)
+    .filter(packageDirectory => packageDirectory.startsWith("@"));
+}
+
+// Copied from: http://stackoverflow.com/questions/10865025/merge-flatten-an-array-of-arrays-in-javascript
+function flatMap(a, cb) {
+  return [].concat(...a.map(cb));
 }
 
 // Copied from: http://stackoverflow.com/a/24594123/656172
