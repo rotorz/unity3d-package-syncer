@@ -36,56 +36,56 @@ console.log("Syncing packages in Unity project...");
 // Phase 1 - Copy packages from node packages into project's packages directory.
 
 for (let dependencyName of Object.keys(projectDependencies)) {
-    const dependencyDir = path.join(projectRootDir, "node_modules", dependencyName);
-    const dependencyConfigPath = path.join(dependencyDir, "package.json");
-    const dependencyConfig = fs.readJsonSync(dependencyConfigPath);
-    const dependencyKeywords = dependencyConfig.keywords || [ ];
+  const dependencyDir = path.join(projectRootDir, "node_modules", dependencyName);
+  const dependencyConfigPath = path.join(dependencyDir, "package.json");
+  const dependencyConfig = fs.readJsonSync(dependencyConfigPath);
+  const dependencyKeywords = dependencyConfig.keywords || [ ];
 
-    // Skip packages that do not need to be installed using this mechanism.
-    if (!dependencyKeywords.includes(specialKeyword)) {
-        continue;
+  // Skip packages that do not need to be installed using this mechanism.
+  if (!dependencyKeywords.includes(specialKeyword)) {
+    continue;
+  }
+
+  console.log("");
+  console.log(colors.cyan("  " + dependencyName));
+
+  // Get information about the package that has already been installed into
+  // the Unity project.
+  const assetsTargetPath = path.resolve(projectPackagesDir, dependencyName);
+  validateProjectPackageDirectory(assetsTargetPath);
+
+  const assetsTargetConfigPath = path.join(assetsTargetPath, "package.json");
+  if (fs.existsSync(assetsTargetConfigPath)) {
+    const assetsTargetConfig = fs.readJsonSync(assetsTargetConfigPath);
+
+    // Skip installation of this package if the one that has already been
+    // installed into the Unity project has the same version number.
+    if (dependencyConfig.version === assetsTargetConfig.version) {
+      console.log("    Already latest version.");
+      continue;
     }
+  }
 
-    console.log("");
-    console.log(colors.cyan("  " + dependencyName));
 
-    // Get information about the package that has already been installed into
-    // the Unity project.
-    const assetsTargetPath = path.resolve(projectPackagesDir, dependencyName);
-    validateProjectPackageDirectory(assetsTargetPath);
+  // Okay, we need to install the package into the Unity project.
+  console.log("    Preparing package directory...");
+  fs.emptyDirSync(assetsTargetPath);
+  console.log("    Copying asset files...");
+  copyIfExistsSync("assets", "");
+  console.log("    Copying extra files...");
+  extraFiles.forEach(copyIfExistsSync);
 
-    const assetsTargetConfigPath = path.join(assetsTargetPath, "package.json");
-    if (fs.existsSync(assetsTargetConfigPath)) {
-        const assetsTargetConfig = fs.readJsonSync(assetsTargetConfigPath);
 
-        // Skip installation of this package if the one that has already been
-        // installed into the Unity project has the same version number.
-        if (dependencyConfig.version === assetsTargetConfig.version) {
-            console.log("    Already latest version.");
-            continue;
-        }
+  function copyIfExistsSync(sourceRelativeFileName, targetRelativeFileName) {
+    const sourcePath = path.join(dependencyDir, sourceRelativeFileName);
+    if (fs.existsSync(sourcePath)) {
+      if (typeof targetRelativeFileName !== "string") {
+        targetRelativeFileName = sourceRelativeFileName;
+      }
+      const targetPath = path.join(assetsTargetPath, targetRelativeFileName);
+      fs.copySync(sourcePath, targetPath);
     }
-
-
-    // Okay, we need to install the package into the Unity project.
-    console.log("    Preparing package directory...");
-    fs.emptyDirSync(assetsTargetPath);
-    console.log("    Copying asset files...");
-    copyIfExistsSync("assets", "");
-    console.log("    Copying extra files...");
-    extraFiles.forEach(copyIfExistsSync);
-
-
-    function copyIfExistsSync(sourceRelativeFileName, targetRelativeFileName) {
-        const sourcePath = path.join(dependencyDir, sourceRelativeFileName);
-        if (fs.existsSync(sourcePath)) {
-            if (typeof targetRelativeFileName !== "string") {
-                targetRelativeFileName = sourceRelativeFileName;
-            }
-            const targetPath = path.join(assetsTargetPath, targetRelativeFileName);
-            fs.copySync(sourcePath, targetPath);
-        }
-    }
+  }
 }
 
 console.log("");
@@ -97,19 +97,19 @@ const projectPackageDirectoryListing = getDirectories(projectPackagesDir);
 const projectRedundantPackageNames = projectPackageDirectoryListing.filter(packageName => !projectDependencyNames.has(packageName));
 
 for (let redundantPackageName of projectRedundantPackageNames) {
-    const redundantPackageDir = path.resolve(projectPackagesDir, redundantPackageName);
-    const redundantPackageMetaPath = path.resolve(projectPackagesDir, redundantPackageName + ".meta");
-    validateProjectPackageDirectory(redundantPackageDir);
+  const redundantPackageDir = path.resolve(projectPackagesDir, redundantPackageName);
+  const redundantPackageMetaPath = path.resolve(projectPackagesDir, redundantPackageName + ".meta");
+  validateProjectPackageDirectory(redundantPackageDir);
 
-    console.log(colors.red("  Removing " + redundantPackageName));
+  console.log(colors.red("  Removing " + redundantPackageName));
 
-    if (fs.existsSync(redundantPackageDir)) {
-        fs.removeSync(redundantPackageDir);
-    }
+  if (fs.existsSync(redundantPackageDir)) {
+    fs.removeSync(redundantPackageDir);
+  }
 
-    if (fs.existsSync(redundantPackageMetaPath)) {
-        fs.unlinkSync(redundantPackageMetaPath);
-    }
+  if (fs.existsSync(redundantPackageMetaPath)) {
+    fs.unlinkSync(redundantPackageMetaPath);
+  }
 }
 
 console.log("");
@@ -118,13 +118,13 @@ console.log("");
 // Helper functions:
 
 function validateProjectPackageDirectory(packageDir) {
-    if (!packageDir.includes(PROJECT_RELATIVE_PACKAGES_PATH)) {
-        throw new Error("Project package has an unexpected path: " + packageDir);
-    }
+  if (!packageDir.includes(PROJECT_RELATIVE_PACKAGES_PATH)) {
+    throw new Error("Project package has an unexpected path: " + packageDir);
+  }
 }
 
 // Copied from: http://stackoverflow.com/a/24594123/656172
 function getDirectories(srcpath) {
   return fs.readdirSync(srcpath)
-    .filter(file => fs.statSync(path.join(srcpath, file)).isDirectory())
+  .filter(file => fs.statSync(path.join(srcpath, file)).isDirectory())
 }
