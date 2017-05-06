@@ -163,5 +163,5 @@ function flatMap(a, cb) {
 // Copied from: http://stackoverflow.com/a/24594123/656172
 function getDirectories(srcpath) {
   return fs.readdirSync(srcpath)
-  .filter(file => fs.statSync(path.join(srcpath, file)).isDirectory())
+    .filter(file => fs.statSync(path.join(srcpath, file)).isDirectory())
 }
