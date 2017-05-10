@@ -1,6 +1,6 @@
 {
   "name": "unity3d-package-syncer",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A command line utility that synchronizes asset files from npm packages into an appropriate directory of a game project that is made using the Unity game engine.",
   "main": "index.js",
   "bin": {

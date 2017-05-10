@@ -23,8 +23,6 @@ const projectRootDir = process.cwd();
 const projectConfigPath = path.join(projectRootDir, "package.json");
 const projectConfig = fs.readJsonSync(projectConfigPath);
 const projectPackagesDir = path.join(projectRootDir, PROJECT_RELATIVE_PACKAGES_PATH);
-const projectDependencies = (projectConfig.dependencies || { });
-const projectDependencyNames = new Set(Object.keys(projectDependencies));
 
 
 const specialKeyword = "unity3d-package";
@@ -34,9 +32,18 @@ const extraFiles = [ "package.json", "README.md", "LICENSE" ];
 console.log("Syncing packages in Unity project...");
 
 
-// Phase 1 - Copy packages from node packages into project's packages directory.
+// Phase 1 - Get flat list of package dependencies.
 
-for (let dependencyName of Object.keys(projectDependencies)) {
+//const projectDependencies = (projectConfig.dependencies || { });
+//const projectDependencyNames = new Set(Object.keys(projectDependencies));
+
+const projectDependencies = getPackageListing(path.resolve(projectRootDir, "node_modules"));
+const projectDependencyNames = new Set(projectDependencies);
+
+
+// Phase 2 - Copy packages from node packages into project's packages directory.
+
+for (let dependencyName of projectDependencyNames) {
   const dependencyDir = path.join(projectRootDir, "node_modules", dependencyName);
   const dependencyConfigPath = path.join(dependencyDir, "package.json");
   const dependencyConfig = fs.readJsonSync(dependencyConfigPath);
@@ -92,9 +99,9 @@ for (let dependencyName of Object.keys(projectDependencies)) {
 console.log("");
 
 
-// Phase 2 - Remove redundant packages from the project's packages directory.
+// Phase 3 - Remove redundant packages from the project's packages directory.
 
-const projectPackageListing = getProjectPackageListing();
+const projectPackageListing = getPackageListing(projectPackagesDir);
 const projectRedundantPackageNames = projectPackageListing.filter(packageName => !projectDependencyNames.has(packageName));
 
 for (let redundantPackageName of projectRedundantPackageNames) {
@@ -116,7 +123,7 @@ for (let redundantPackageName of projectRedundantPackageNames) {
 console.log("");
 
 
-// Phase 3 - Remove empty scope directories from project's packages directory.
+// Phase 4 - Remove empty scope directories from project's packages directory.
 
 for (let projectPackageScope of getProjectPackageScopes()) {
   const projectPackageScopeDir = path.resolve(projectPackagesDir, projectPackageScope);
@@ -141,13 +148,14 @@ function validateProjectPackageDirectory(packageDir) {
   }
 }
 
-function getProjectPackageListing() {
-  return flatMap(getDirectories(projectPackagesDir), packageDirectory =>
+function getPackageListing(dir) {
+  return flatMap(getDirectories(dir), packageDirectory =>
     packageDirectory.startsWith("@")
-      ? getDirectories(path.join(projectPackagesDir, packageDirectory))
+      ? getDirectories(path.join(dir, packageDirectory))
           .map(scopedPackageName => packageDirectory + "/" + scopedPackageName)
       : packageDirectory
-  );
+  )
+  .filter(dir => !path.basename(dir).startsWith("."));
 }
 
 function getProjectPackageScopes() {
@@ -163,5 +171,5 @@ function flatMap(a, cb) {
 // Copied from: http://stackoverflow.com/a/24594123/656172
 function getDirectories(srcpath) {
   return fs.readdirSync(srcpath)
-    .filter(file => fs.statSync(path.join(srcpath, file)).isDirectory())
+  .filter(file => fs.statSync(path.join(srcpath, file)).isDirectory())
 }
