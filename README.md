@@ -58,6 +58,11 @@ npm install --save unity3d-package-example
 npm run sync
 ```
 
+If your package has an editor script that needs to generate data assets (such as presets,
+project settings, etc) then it should store those in the `Assets/Plugins/PackageData/{package-name}`
+path. You may find the [unity3d-package-utils](https://github.com/rotorz/unity3d-package-utils)
+package useful in assiting with this.
+
 
 ## Creating Unity packages for npm
 
