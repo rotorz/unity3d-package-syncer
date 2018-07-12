@@ -40,7 +40,8 @@ package useful in assiting with this.
 ## yarn vs npm
 
 From my experience the [yarn](https://yarnpkg.com/en/) tool seems to work better with the
-Unity development workflow since packages are installed deterministically.
+Unity development workflow since packages are installed deterministically. The minimum
+required version of yarn is v1.9.0.
 
 
 ## Creating Unity packages
